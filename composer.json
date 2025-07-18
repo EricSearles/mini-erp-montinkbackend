@@ -1,0 +1,19 @@
+{
+  "name": "vendor_name/mini-erp-montinkbackend",
+  "description": "teste",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Eric Searles",
+      "email": "ericsearles@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "require": {
+  }
+}
