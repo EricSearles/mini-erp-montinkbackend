@@ -1,9 +1,9 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use App\Core\Connection;
 
-$db = Connection::connect();
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../routes/web.php';
 
-require __DIR__ . '/../routes/web.php';
+//$db = Connection::connect();
+
