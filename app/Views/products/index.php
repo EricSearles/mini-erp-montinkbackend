@@ -3,6 +3,7 @@
 <head>
     <title>Mini ERP</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="container mt-4">
 <h1>Cadastro de Produtos</h1>
@@ -16,26 +17,152 @@
         <label>Preço</label>
         <input type="number" name="price" step="0.01" class="form-control" required />
     </div>
+
+    <!-- Seção de Variações -->
+    <div class="mb-3">
+        <label>Variações</label>
+        <div id="variations-container">
+            <!-- Variações serão adicionadas aqui dinamicamente -->
+        </div>
+        <button type="button" id="add-variation" class="btn btn-secondary btn-sm mt-2">+ Adicionar Variação</button>
+    </div>
+
+    <!-- Controle de Estoque -->
+    <div class="mb-3">
+        <label>Estoque Geral</label>
+        <input type="number" name="stock" class="form-control" min="0" required />
+    </div>
+
     <button type="submit" class="btn btn-success">Salvar</button>
 </form>
 
 <h2 class="mt-5">Produtos Cadastrados</h2>
 <table class="table">
-    <thead><tr><th>ID</th><th>Nome</th><th>Preço</th><th>Ações</th></tr></thead>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Preço</th>
+        <th>Estoque</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
     <tbody>
     <?php foreach ($products as $p): ?>
         <tr>
             <td><?= $p['id'] ?></td>
             <td><?= $p['name'] ?></td>
             <td>R$ <?= number_format($p['price'], 2, ',', '.') ?></td>
+            <td><?= $p['stock'] ?? '0' ?></td>
             <td>
                 <a href="/products/edit?id=<?= $p['id'] ?>" class="btn btn-primary btn-sm">Editar</a>
-            </td>
-            <td>
                 <a href="/products/delete?id=<?= $p['id'] ?>" class="btn btn-danger btn-sm">Remover</a>
+                <button class="btn btn-info btn-sm buy-btn" data-product-id="<?= $p['id'] ?>">Comprar</button>
             </td>
         </tr>
     <?php endforeach ?>
     </tbody>
 </table>
-<?php include '../templates/footer.php'; ?>
+
+<!-- Modal de Compra -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Finalizar Compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cart-items">
+                    <!-- Itens do carrinho serão adicionados aqui -->
+                </div>
+
+                <div class="mb-3">
+                    <label>CEP</label>
+                    <input type="text" id="cep" class="form-control" placeholder="00000-000">
+                    <small class="text-muted" id="address-info"></small>
+                </div>
+
+                <div class="mb-3">
+                    <label>Cupom de Desconto</label>
+                    <input type="text" id="coupon" class="form-control">
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <h6>Subtotal: <span id="subtotal">R$ 0,00</span></h6>
+                        <h6>Frete: <span id="shipping">R$ 0,00</span></h6>
+                        <h5>Total: <span id="total">R$ 0,00</span></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continuar Comprando</button>
+                <button type="button" class="btn btn-success" id="finalize-purchase">Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Script para gerenciar variações
+    $(document).ready(function() {
+        // Adicionar variação
+        $('#add-variation').click(function() {
+            $('#variations-container').append(`
+            <div class="variation-item row mb-2">
+                <div class="col-md-5">
+                    <input type="text" name="variation_name[]" class="form-control form-control-sm" placeholder="Nome da variação">
+                </div>
+                <div class="col-md-5">
+                    <input type="number" name="variation_stock[]" class="form-control form-control-sm" placeholder="Estoque" min="0">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm remove-variation">×</button>
+                </div>
+            </div>
+        `);
+        });
+
+        // Remover variação
+        $(document).on('click', '.remove-variation', function() {
+            $(this).closest('.variation-item').remove();
+        });
+
+        // Consulta CEP
+        $('#cep').on('blur', function() {
+            const cep = $(this).val().replace(/\D/g, '');
+            if (cep.length === 8) {
+                $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
+                    if (!data.erro) {
+                        $('#address-info').text(`${data.logradouro}, ${data.bairro}, ${data.localidade}/${data.uf}`);
+                    } else {
+                        $('#address-info').text('CEP não encontrado').addClass('text-danger');
+                    }
+                });
+            }
+        });
+
+        // Botão comprar
+        $('.buy-btn').click(function() {
+            const productId = $(this).data('product-id');
+            // Lógica para adicionar ao carrinho (em sessão)
+            // Atualizar valores e modal
+            const purchaseModal = new bootstrap.Modal(document.getElementById('purchaseModal'));
+            purchaseModal.show();
+        });
+
+        // Lógica para calcular frete baseado no subtotal
+        function calculateShipping(subtotal) {
+            if (subtotal >= 52 && subtotal <= 166.59) {
+                return 15;
+            } else if (subtotal > 200) {
+                return 0;
+            }
+            return 20;
+        }
+    });
+</script>
+
+<?php include __DIR__ . '/../templates/footer.php'; ?>
