@@ -106,54 +106,69 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Script para gerenciar variações
     $(document).ready(function() {
-        // Adicionar variação
-        $('#add-variation').click(function() {
-            $('#variations-container').append(`
-            <div class="variation-item row mb-2">
-                <div class="col-md-5">
-                    <input type="text" name="variation_name[]" class="form-control form-control-sm" placeholder="Nome da variação">
-                </div>
-                <div class="col-md-5">
-                    <input type="number" name="variation_stock[]" class="form-control form-control-sm" placeholder="Estoque" min="0">
-                </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-danger btn-sm remove-variation">×</button>
-                </div>
-            </div>
-        `);
-        });
-
-        // Remover variação
-        $(document).on('click', '.remove-variation', function() {
-            $(this).closest('.variation-item').remove();
-        });
-
-        // Consulta CEP
-        $('#cep').on('blur', function() {
-            const cep = $(this).val().replace(/\D/g, '');
-            if (cep.length === 8) {
-                $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
-                    if (!data.erro) {
-                        $('#address-info').text(`${data.logradouro}, ${data.bairro}, ${data.localidade}/${data.uf}`);
-                    } else {
-                        $('#address-info').text('CEP não encontrado').addClass('text-danger');
-                    }
-                });
-            }
-        });
-
         // Botão comprar
-        $('.buy-btn').click(function() {
+        $('.buy-btn').click(function(e) {
+            e.preventDefault();
             const productId = $(this).data('product-id');
-            // Lógica para adicionar ao carrinho (em sessão)
-            // Atualizar valores e modal
+
+            // Abre o modal de compra
             const purchaseModal = new bootstrap.Modal(document.getElementById('purchaseModal'));
             purchaseModal.show();
+
+            // Carrega os dados do produto
+            $.get('/products/show/' + productId, function(response) {
+                const product = typeof response === 'string' ? JSON.parse(response) : response;
+
+                $('#cart-items').html(`
+                <div class="cart-item mb-3" data-product-id="${product.id}" data-price="${product.price}">
+                    <h5>${product.name}</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Variação</label>
+                            <select class="form-select variation-select">
+                                <option value="0">Padrão</option>
+                                ${product.variations && product.variations.length ?
+                    product.variations.map(v =>
+                        `<option value="${v.id}">${v.name} (${v.quantity} disponíveis)</option>`
+                    ).join('') : ''}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Quantidade</label>
+                            <input type="number" class="form-control quantity" value="1" min="1" max="${product.stock}">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <strong>Preço:</strong> R$ ${parseFloat(product.price).toFixed(2)}
+                    </div>
+                </div>
+            `);
+
+                // Calcula o subtotal inicial
+                updateCartTotals(product.price, 1);
+            }).fail(function() {
+                console.error('Erro ao carregar produto');
+            });
         });
 
-        // Lógica para calcular frete baseado no subtotal
+        // Atualiza quantidades
+        $(document).on('change', '.quantity, .variation-select', function() {
+            const price = parseFloat($('#cart-items').find('.cart-item').data('price'));
+            const quantity = parseInt($(this).closest('.cart-item').find('.quantity').val());
+            updateCartTotals(price, quantity);
+        });
+
+        function updateCartTotals(price, quantity) {
+            const subtotal = price * quantity;
+            const shipping = calculateShipping(subtotal);
+            const total = subtotal + shipping;
+
+            $('#subtotal').text('R$ ' + subtotal.toFixed(2));
+            $('#shipping').text('R$ ' + shipping.toFixed(2));
+            $('#total').text('R$ ' + total.toFixed(2));
+        }
+
         function calculateShipping(subtotal) {
             if (subtotal >= 52 && subtotal <= 166.59) {
                 return 15;
@@ -162,6 +177,52 @@
             }
             return 20;
         }
+
+        // Consulta CEP
+        $('#cep').on('blur', function() {
+            const cep = $(this).val().replace(/\D/g, '');
+            if (cep.length === 8) {
+                $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
+                    if (!data.erro) {
+                        $('#address-info').text(`${data.logradouro}, ${data.bairro}, ${data.localidade}/${data.uf}`).removeClass('text-danger');
+                    } else {
+                        $('#address-info').text('CEP não encontrado').addClass('text-danger');
+                    }
+                });
+            }
+        });
+
+        // Finalizar compra
+        $('#finalize-purchase').click(function() {
+            const productId = $('.cart-item').data('product-id');
+            const variationId = $('.variation-select').val();
+            const quantity = $('.quantity').val();
+            const cep = $('#cep').val();
+            const coupon = $('#coupon').val();
+
+            $.ajax({
+                url: '/cart/add',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    product_id: productId,
+                    variation_id: variationId !== '0' ? variationId : null,
+                    quantity: quantity,
+                    cep: cep,
+                    coupon: coupon
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = '/cart/checkout';
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao processar a compra');
+                }
+            });
+        });
     });
 </script>
 

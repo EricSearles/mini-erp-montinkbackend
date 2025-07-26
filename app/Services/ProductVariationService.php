@@ -35,6 +35,11 @@ class ProductVariationService {
         return $variationId;
     }
 
+    public function getById($id)
+    {
+        return $this->variationRepository->find($id);
+    }
+
     public function deleteVariation($variationId) {
         // Remove o estoque primeiro
         $this->stockRepository->deleteByVariationId($variationId);

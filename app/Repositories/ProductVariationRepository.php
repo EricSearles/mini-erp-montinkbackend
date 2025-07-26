@@ -36,4 +36,12 @@ class ProductVariationRepository
         $stmt->execute([$productId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function find($id)
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM product_variations WHERE id = ?");
+        $stmt->execute([$id]);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $data ? new ProductVariation($data) : null;
+    }
 }
