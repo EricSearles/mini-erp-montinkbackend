@@ -35,7 +35,32 @@ class ProductController
     public function show($id)
     {
         header('Content-Type: application/json');
-        echo json_encode($this->service->getById($id));
+
+        try {
+            $product = $this->service->getById($id);
+
+            if (!$product) {
+                throw new \Exception('Produto não encontrado');
+            }
+
+            // Adiciona as variações ao produto
+            $productData = [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => (float)$product->price,
+                'stock' => (int)$product->stock,
+                'variations' => $this->variationService->getByProductId($id)
+            ];
+
+            echo json_encode($productData);
+
+        } catch (\Exception $e) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     public function store() {
