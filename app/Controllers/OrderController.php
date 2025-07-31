@@ -15,7 +15,6 @@ class OrderController
 
     public function index($orderId)
     {
-       // $service = new OrderService();
         $data = $this->orderService->getOrderWithItems($orderId);
 
         $order = $data['order'];

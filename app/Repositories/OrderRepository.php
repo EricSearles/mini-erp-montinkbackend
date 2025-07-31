@@ -70,4 +70,21 @@ class OrderRepository
         $stmt->execute([$orderId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function delete(int $orderId): void
+    {
+        // Deleta primeiro os itens vinculados
+        $stmt = $this->pdo->prepare("DELETE FROM order_items WHERE order_id = ?");
+        $stmt->execute([$orderId]);
+
+        // Depois deleta o pedido
+        $stmt = $this->pdo->prepare("DELETE FROM orders WHERE id = ?");
+        $stmt->execute([$orderId]);
+    }
+
+    public function updateStatus(int $orderId, string $status): void
+    {
+        $stmt = $this->pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
+        $stmt->execute([$status, $orderId]);
+    }
 }
