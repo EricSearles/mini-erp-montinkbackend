@@ -14,6 +14,16 @@ class CouponService
         $this->repository = $repository;
     }
 
+    public function getAll(): array
+    {
+        return $this->repository->getAll();
+    }
+
+    public function create(Coupon $coupon): bool
+    {
+        return $this->repository->create($coupon);
+    }
+
     public function validateCoupon(string $code, float $subtotal): array
     {
         $coupon = $this->repository->findByCode($code);

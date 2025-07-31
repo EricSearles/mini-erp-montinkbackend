@@ -15,6 +15,14 @@ class CouponRepository
         $this->pdo = Connection::connect();
     }
 
+    public function getAll(): array
+    {
+        $stmt = $this->pdo->query("SELECT * FROM coupons ORDER BY created_at DESC");
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => new Coupon($row), $data);
+    }
+
     public function findByCode(string $code): ?Coupon
     {
         $stmt = $this->pdo->prepare("SELECT * FROM coupons WHERE code = ?");
