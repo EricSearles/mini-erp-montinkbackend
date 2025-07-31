@@ -1,10 +1,12 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+//error_reporting(E_ALL);
+//ini_set('display_errors', 1);
 
-// NÃO precisa de session_start() se já está ativo no controller
 $cartItems = $_SESSION['cart'] ?? [];
 $totals = $cartService->calculateTotals();
+$last = count($cartItems) - 1;
+$lastItem = $cartItems[$last] ?? null;
+$preFilledAddress = $lastItem['address'] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -18,7 +20,7 @@ $totals = $cartService->calculateTotals();
 
 <?php if (empty($cartItems)): ?>
     <div class="alert alert-warning">Seu carrinho está vazio</div>
-    <a href="/products" class="btn btn-primary">Voltar aos produtos</a>
+    <a href="/" class="btn btn-primary">Voltar aos produtos</a>
 <?php else: ?>
     <div class="row">
         <div class="col-md-8">
@@ -34,15 +36,24 @@ $totals = $cartService->calculateTotals();
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($cartItems as $item): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($item['product_name'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($item['variation_name'] ?? '') ?></td>
-                        <td><?= intval($item['quantity'] ?? 0) ?></td>
-                        <td>R$ <?= number_format(floatval($item['price'] ?? 0), 2, ',', '.') ?></td>
-                        <td>R$ <?= number_format(floatval($item['subtotal'] ?? 0), 2, ',', '.') ?></td>
-                    </tr>
-                <?php endforeach ?>
+                    <?php foreach ($cartItems as $index => $item): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($item['product_name'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($item['variation_name'] ?? '') ?></td>
+                            <td><?= intval($item['quantity'] ?? 0) ?></td>
+                            <td>R$ <?= number_format(floatval($item['price'] ?? 0), 2, ',', '.') ?></td>
+                            <td>R$ <?= number_format(floatval($item['subtotal'] ?? 0), 2, ',', '.') ?></td>
+                            <td>
+                                <form method="post" action="/cart/remove" onsubmit="return confirm('Remover este item?')">
+                                    <input type="hidden" name="index" value="<?= $index ?>">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach ?>
+                <tr>
+                    <td><a href="/" class="btn btn-primary">Continuar comprando</a></td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -62,9 +73,21 @@ $totals = $cartService->calculateTotals();
                     <h4>Total: R$ <?= number_format(floatval($totals['total'] ?? 0), 2, ',', '.') ?></h4>
 
                     <form method="post" action="/cart/finalize" class="mt-3">
+                        <h2>Endereço de Entrega</h2>
+
                         <div class="mb-3">
-                            <label>Endereço Completo</label>
-                            <textarea class="form-control" name="address" required></textarea>
+                            <label>Endereço</label>
+                            <input type="text" name="address" class="form-control" value="<?= htmlspecialchars($preFilledAddress) ?>" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Número</label>
+                            <input type="text" name="number" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Complemento</label>
+                            <input type="text" name="complement" class="form-control">
                         </div>
                         <button type="submit" class="btn btn-success w-100">Confirmar Pedido</button>
                     </form>
