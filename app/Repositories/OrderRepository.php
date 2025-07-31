@@ -19,14 +19,15 @@ class OrderRepository
     public function save(Order $order): int
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO orders (address, total, status, created_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO orders (email, address, total, shipping, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
-           // $order->user_id,
+            $order->email,
             $order->address,
             $order->total,
+            $order->shipping,
             $order->status,
             $order->created_at
         ]);
@@ -60,8 +61,11 @@ class OrderRepository
         $stmt = $this->pdo->prepare("
             SELECT o.*, 
                    p.name as 'Produto',
+                   p.description,
                    oi.quantity as 'QTD', 
-                   oi.unit_price
+                   oi.unit_price,
+                   o.discount,
+                   o.total
             FROM orders o
             LEFT JOIN order_items oi ON oi.order_id = o.id
             LEFT JOIN products p ON p.id = oi.product_id

@@ -63,17 +63,24 @@ $preFilledAddress = $lastItem['address'] ?? '';
             <div class="card">
                 <div class="card-body">
                     <h5>Subtotal: R$ <?= number_format(floatval($totals['subtotal'] ?? 0), 2, ',', '.') ?></h5>
-
+                    <h5>Frete: R$ <?= number_format(floatval($totals['shipping'] ?? 0), 2, ',', '.') ?></h5>
                     <?php if (($totals['discount'] ?? 0) > 0): ?>
                         <h5>Desconto: -R$ <?= number_format(floatval($totals['discount'] ?? 0), 2, ',', '.') ?></h5>
                     <?php endif; ?>
-
-                    <h5>Frete: R$ <?= number_format(floatval($totals['shipping'] ?? 0), 2, ',', '.') ?></h5>
+                    <?php if (!empty($cartItems[0]['coupon'])): ?>
+                        <div class="alert alert-success">
+                            Cupom "<?php echo $cartItems[0]['coupon']; ?>" aplicado com sucesso!
+                        </div>
+                    <?php endif; ?>
                     <hr>
                     <h4>Total: R$ <?= number_format(floatval($totals['total'] ?? 0), 2, ',', '.') ?></h4>
 
                     <form method="post" action="/cart/finalize" class="mt-3">
                         <h2>Endereço de Entrega</h2>
+                        <div class="mb-3">
+                            <label>E-mail para confirmação do pedido:</label>
+                            <input type="email" class="form-control" name="email" id="email" required>
+                        </div>
 
                         <div class="mb-3">
                             <label>Endereço</label>

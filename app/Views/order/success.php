@@ -1,53 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Finalizar Compra</title>
+    <title>Pedido Finalizado</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body class="container mt-4">
-<h1>Finalizar Compra</h1>
+<body class="bg-light">
 
-<h1>Pedido Realizado com Sucesso!</h1>
+<div class="container mt-5 mb-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h1 class="text-success mb-4 text-center">Pedido realizado com sucesso!</h1>
 
-<?php if (!empty($data) && is_array($data)) :
-    // Pegando os dados fixos (endereço, total, etc.) da primeira posição
-    $pedido = $data[0];
-    ?>
-    <h2>Resumo do Pedido #<?= htmlspecialchars($pedido['id']) ?></h2>
-    <p><strong>Data:</strong> <?= date('d/m/Y H:i', strtotime($pedido['created_at'])) ?></p>
-    <p><strong>Endereço:</strong> <?= htmlspecialchars($pedido['address']) ?></p>
-    <p><strong>Status:</strong> <?= ucfirst($pedido['status']) ?></p>
+            <?php if (!empty($data) && is_array($data)) :
+                $pedido = $data[0];
+            ?>
+                <div class="mb-4">
+                    <h4 class="mb-3">Resumo do Pedido #<?= htmlspecialchars($pedido['id']) ?></h4>
+                    <p><strong>Data:</strong> <?= date('d/m/Y H:i', strtotime($pedido['created_at'])) ?></p>
+                    <p><strong>E-mail:</strong> <?= htmlspecialchars($pedido['email']) ?></p>
+                    <p><strong>Endereço:</strong> <?= htmlspecialchars($pedido['address']) ?></p>
+                    <p><strong>Status:</strong> <?= ucfirst($pedido['status']) ?></p>
+                </div>
 
-    <h3>Itens do Pedido:</h3>
-    <table border="1" cellpadding="10" cellspacing="0">
-        <thead>
-        <tr>
-            <th>Produto</th>
-            <th>Quantidade</th>
-            <th>Preço Unitário</th>
-            <th>Total</th>
-        </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($data as $item): ?>
-            <tr>
-                <td><?= htmlspecialchars($item['Produto']) ?></td>
-                <td><?= (int) $item['QTD'] ?></td>
-                <td>R$ <?= number_format($item['unit_price'], 2, ',', '.') ?></td>
-                <td>R$ <?= number_format($item['unit_price'] * $item['QTD'], 2, ',', '.') ?></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+                <div class="mb-4">
+                    <h5>Itens do Pedido:</h5>
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Produto</th>
+                            <th>Descrição</th>
+                            <th>Quantidade</th>
+                            <th>Preço Unitário</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($data as $item): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($item['Produto']) ?></td>
+                                <td><?= htmlspecialchars($item['description']) ?></td>
+                                <td><?= (int) $item['QTD'] ?></td>
+                                <td>R$ <?= number_format($item['unit_price'], 2, ',', '.') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
 
-    <h3>Resumo Financeiro:</h3>
-    <p><strong>Descontos:</strong> R$ <?= number_format($pedido['discount'], 2, ',', '.') ?></p>
-    <p><strong>Total do Pedido:</strong> <strong>R$ <?= number_format($pedido['total'], 2, ',', '.') ?></strong></p>
+                <div class="mb-4">
+                    <h5>Resumo Financeiro:</h5>
+                    <p><strong>Frete:</strong> R$ <?= number_format($pedido['shipping'], 2, ',', '.') ?></p>
+                    <p><strong>Descontos:</strong> R$ <?= number_format($pedido['discount'], 2, ',', '.') ?></p>
+                    <p class="fs-5"><strong>Total do Pedido:</strong> R$ <?= number_format($pedido['total'], 2, ',', '.') ?></p>
+                </div>
 
-    <p><a href="/">Voltar à loja</a></p>
-<?php else: ?>
-    <p>Pedido não encontrado.</p>
-<?php endif; ?>
+                <div class="text-center">
+                    <a href="/" class="btn btn-primary">Voltar à Loja</a>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-danger">
+                    <p>Pedido não encontrado.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
