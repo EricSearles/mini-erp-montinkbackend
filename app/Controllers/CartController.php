@@ -61,8 +61,8 @@ class CartController
 
             $unitPrice = $variation ? $variation->price : $product->price;
 
-            // Valida cupom
             $couponValidation = ['valid' => false];
+
             if ($couponCode) {
                 $subtotal = $unitPrice * $quantity;
                 $couponValidation = $this->couponService->validateCoupon($couponCode, $subtotal);
@@ -136,6 +136,7 @@ class CartController
         $cartItems = $_SESSION['cart'] ?? [];
         $totals = $this->cartService->calculateTotals();
 
+        $email = $_POST['email'] ?? '';
         $address = $_POST['address'] ?? '';
         $number = $_POST['number'] ?? '';
         $complement = $_POST['complement'] ?? '';
@@ -146,10 +147,10 @@ class CartController
 
         $user = [
             'id' => $_SESSION['user_id'] ?? 1,
-            'email' => $_SESSION['user_email'] ?? 'cliente@teste.com'
+            'email' => $email,
         ];
 
-        $orderId = $this->orderService->create($user, $fullAddress, $cartItems, $totals['total']);
+        $orderId = $this->orderService->create($user, $fullAddress, $cartItems, $totals['total'], $totals['shipping']);
         unset($_SESSION['cart'], $_SESSION['cart_discount'], $_SESSION['cart_coupon']);
         header("Location: /orders/success?id=" . $orderId);
         exit;

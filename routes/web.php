@@ -5,6 +5,7 @@ use App\Controllers\ProductController;
 use App\Controllers\ProductVariationController;
 use App\Controllers\CartController;
 use App\Controllers\OrderController;
+use App\Controllers\CouponController;
 
 use App\Services\ProductService;
 use App\Services\ProductVariationService;
@@ -43,6 +44,7 @@ $orderController = new OrderController($orderService);
 
 $couponRepository = new CouponRepository();
 $couponService = new CouponService($couponRepository);
+$couponController = new CouponController($couponService);
 $cartService = new CartService($productRepository, $variationRepository, $stockRepository, $couponService);
 $cartController = new CartController($cartService, $productService, $couponService, $variationService, $orderService);
 $controller = new ProductController($productService, $variationService);
@@ -83,6 +85,10 @@ if ($uri === '/') {
     $orderController->purchaseFinished($_GET['id']);
 } elseif ($uri === '/webhook/order-status' && $method === 'POST') {
     $webhookService->handleStatusWebhook();
+}elseif ($uri === '/coupons' && $method === 'GET') {
+    $couponController->index();
+} elseif ($uri === '/coupons/store' && $method === 'POST') {
+    $couponController->store();
 }else {
     http_response_code(404);
     echo json_encode(['message' => 'Rota não encontrada']);

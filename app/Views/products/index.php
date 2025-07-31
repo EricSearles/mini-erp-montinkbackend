@@ -61,6 +61,9 @@
             </td>
         </tr>
     <?php endforeach ?>
+    <tr>
+        <td><a href="/coupons" class="btn btn-secondary mt-3">Coupons</a></td>
+    </tr>
     </tbody>
 </table>
 
@@ -215,7 +218,19 @@
                 }),
                 success: function(response) {
                     if (response.success) {
-                        window.location.href = '/cart/checkout';
+                        const totals = response.totals;
+                        $('#subtotal').text('R$ ' + totals.subtotal.toFixed(2));
+                        $('#shipping').text('R$ ' + totals.shipping.toFixed(2));
+                        $('#total').text('R$ ' + totals.total.toFixed(2));
+
+                        setTimeout(() => {
+                            window.location.href = '/cart/checkout';
+                        }, 1000);
+
+                        if (coupon) {
+                            $('#coupon').after(`<small class="text-success">Cupom "${coupon}" aplicado com sucesso!</small>`);
+                        }
+
                     } else {
                         alert('Erro: ' + response.message);
                     }

@@ -56,7 +56,7 @@ class CartService
 
         $subtotal = $this->calculateSubtotal();
         $shipping = $this->calculateShipping($subtotal);
-        $discount = $_SESSION['cart_discount'] ?? 0;
+        $discount = $_SESSION['cart'][0]['discount'] ?? 0;
 
         return [
             'subtotal' => $subtotal,

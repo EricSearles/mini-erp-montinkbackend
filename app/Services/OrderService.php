@@ -17,19 +17,16 @@ class OrderService
         $this->mailer = $mailer;
     }
 
-    public function create(array $userData, string $address, array $cartItems, float $total): int
+    public function create(array $userData, string $address, array $cartItems, float $total, float $frete): int
     {
-//        var_dump("USEER: ", $userData);
-//        var_dump("ADDRESS: ", $address);
-//        var_dump("CART: ", $cartItems);
-//        var_dump("TOTAL: ", $total);
-
+        $date = date('Y-m-d');
         $order = new Order([
-           // 'user_id' => $userData['id'],
+            'email' => $userData['email'],
             'address' => $address,
+            'shipping' => $frete,
             'total' => $total,
             'status' => 'pending',
-            'created_at' =>"2025-07-28"
+            'created_at' =>$date
         ]);
 
         foreach ($cartItems as $item) {
@@ -38,7 +35,7 @@ class OrderService
 
         $orderId = $this->orderRepository->save($order);
 
-        $this->mailer->sendOrderConfirmation($userData['email'], $orderId);
+      //  $this->mailer->sendOrderConfirmation($userData['email'], $orderId);
         $this->sendWebhook($orderId);
 
         return $orderId;
