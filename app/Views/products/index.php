@@ -199,6 +199,7 @@
             const quantity = $('.quantity').val();
             const cep = $('#cep').val();
             const coupon = $('#coupon').val();
+            const addressText = $('#address-info').text();
 
             $.ajax({
                 url: '/cart/add',
@@ -209,6 +210,7 @@
                     variation_id: variationId !== '0' ? variationId : null,
                     quantity: quantity,
                     cep: cep,
+                    address: addressText,
                     coupon: coupon
                 }),
                 success: function(response) {
